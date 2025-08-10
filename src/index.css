@@ -1,0 +1,59 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background-offwhite text-text-charcoal font-sans;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-primary-navy font-bold;
+  }
+  
+  h1 { @apply text-4xl lg:text-5xl; }
+  h2 { @apply text-3xl lg:text-4xl; }
+  h3 { @apply text-2xl lg:text-3xl; }
+  h4 { @apply text-xl lg:text-2xl; }
+  h5 { @apply text-lg lg:text-xl; }
+  h6 { @apply text-base lg:text-lg; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-navy text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:bg-opacity-90 hover:shadow-brand focus:outline-none focus:ring-2 focus:ring-secondary-teal focus:ring-offset-2;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary-teal text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:bg-opacity-90 hover:shadow-brand focus:outline-none focus:ring-2 focus:ring-primary-navy focus:ring-offset-2;
+  }
+  
+  .btn-accent {
+    @apply bg-accent-ochre text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:bg-opacity-90 hover:shadow-brand focus:outline-none focus:ring-2 focus:ring-primary-navy focus:ring-offset-2;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-brand p-6 transition-all duration-200 hover:shadow-brand-lg;
+  }
+  
+  .spotlight-effect {
+    background: radial-gradient(400px circle at var(--x) var(--y), theme('colors.secondary.teal / 10%'), transparent 40%);
+  }
+}
+
+@layer utilities {
+  .animate-scroll {
+    animation: scroll 30s linear infinite;
+  }
+  
+  @keyframes scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+}
