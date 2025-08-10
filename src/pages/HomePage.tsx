@@ -15,11 +15,6 @@ const HomePage: React.FC = () => {
   // Animation counter for cycling through different camera animations
   const animationCounterRef = useRef(0);
 
-  const handleAnimationComplete = () => {
-    // Trigger the 3D camera animation in the background component
-    webGLBackgroundRef.current?.triggerCameraAnimation();
-  };
-
   useLayoutEffect(() => {
     const mainEl = main.current;
     if (!mainEl) return;
@@ -91,7 +86,7 @@ const HomePage: React.FC = () => {
 
         {/* Animated Line Component */}
         <div className="absolute inset-0 z-10 spotlight-effect">
-          <AnimatedFinancialLine ref={animationRef} onAnimationComplete={handleAnimationComplete} />
+          <AnimatedFinancialLine ref={animationRef} />
         </div>
 
         <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">

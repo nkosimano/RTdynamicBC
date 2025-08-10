@@ -11,6 +11,7 @@ import Step3_Compliance from '../components/forms/Step3_Compliance';
 import Step4_GoalsAndContact from '../components/forms/Step4_GoalsAndContact';
 import { FormData, QuoteResult } from '@/types/formData';
 import { calculateQuote } from '../api/_pricingEngine';
+import { EmailService } from '../services/emailService';
 
 const HealthCheckPage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -44,7 +45,6 @@ const HealthCheckPage: React.FC = () => {
     },
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [quote, setQuote] = useState<QuoteResult | null>(null);
 
   // Calculate total steps dynamically based on entity type
   const getTotalSteps = () => {
@@ -93,122 +93,93 @@ const HealthCheckPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = () => {
-    console.log('Form submitted:', formData);
-    try {
-      const calculatedQuote = calculateQuote(formData);
-      setQuote(calculatedQuote);
-      setIsSubmitted(true);
-    } catch (error) {
-      console.error('Error calculating quote:', error);
-      setIsSubmitted(true);
-    }
-  };
+  const handleSubmit = async () => {
+     console.log('Form submitted:', formData);
+     try {
+       const calculatedQuote = calculateQuote(formData);
+       setIsSubmitted(true);
+       
+       // Send health check report via email
+       try {
+         await EmailService.sendHealthCheckReport(formData, calculatedQuote);
+         console.log('Health check report sent successfully');
+       } catch (emailError) {
+         console.error('Failed to send email:', emailError);
+         // Don't show error to user as the main functionality worked
+       }
+     } catch (error) {
+       console.error('Error processing submission:', error);
+     }
+   };
 
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-background-offwhite py-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="space-y-8">
-            <Card className="text-center py-8">
-              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-6" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Health Check Complete!
+            <Card className="text-center py-12">
+              <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                Thank You for Your Submission!
               </h2>
-              <p className="text-gray-600 mb-4">
-                Thank you for completing our business health check. Here's your personalized quote:
-              </p>
+              <div className="space-y-4 text-gray-600 max-w-2xl mx-auto">
+                <p className="text-lg">
+                  We have successfully received your business health check information.
+                </p>
+                <p>
+                  Our team will carefully review your submission and prepare a customized analysis and quote based on your specific needs.
+                </p>
+                <p className="font-medium text-primary-600">
+                  We will contact you within 24 hours to discuss the next steps.
+                </p>
+              </div>
             </Card>
 
-            {/* Quote Display */}
-            {quote && (
-              <div className="space-y-6">
-                {/* Monthly Retainer */}
-                {quote.monthlyTotal > 0 && (
-                  <Card className="p-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                      Monthly Retainer
-                      <span className="ml-auto text-2xl font-bold text-primary-600">
-                        R{quote.monthlyTotal.toLocaleString()}
-                      </span>
-                    </h3>
-                    {quote.breakdown?.monthly && (
-                      <div className="space-y-2">
-                        {quote.breakdown.monthly.map((item, index) => (
-                          <div key={index} className="flex justify-between text-gray-600">
-                            <span>{item.split(': R')[0]}</span>
-                            <span>R{item.split(': R')[1]}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </Card>
-                )}
-
-                {/* Annual Fees */}
-                {quote.annualTotal > 0 && (
-                  <Card className="p-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                      Annual Fees
-                      <span className="ml-auto text-2xl font-bold text-primary-600">
-                        R{quote.annualTotal.toLocaleString()}
-                      </span>
-                    </h3>
-                    {quote.breakdown?.annual && (
-                      <div className="space-y-2">
-                        {quote.breakdown.annual.map((item, index) => (
-                          <div key={index} className="flex justify-between text-gray-600">
-                            <span>{item.split(': R')[0]}</span>
-                            <span>R{item.split(': R')[1]}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </Card>
-                )}
-
-                {/* Once-Off Fees */}
-                {quote.onceOffTotal > 0 && (
-                  <Card className="p-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                      Once-Off Fees
-                      <span className="ml-auto text-2xl font-bold text-primary-600">
-                        R{quote.onceOffTotal.toLocaleString()}
-                      </span>
-                    </h3>
-                    {Array.isArray(quote.breakdown) && (
-                      <div className="space-y-2">
-                        {quote.breakdown.map((item, index) => (
-                          <div key={index} className="flex justify-between text-gray-600">
-                            <span>{item.split(': R')[0]}</span>
-                            <span>R{item.split(': R')[1]}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </Card>
-                )}
-
-                {/* Custom Quote Message */}
-                {typeof quote.breakdown === 'string' && (
-                  <Card className="p-6 text-center">
-                    <p className="text-lg text-gray-700">{quote.breakdown}</p>
-                  </Card>
-                )}
-
-                {/* Disclaimer */}
-                <Card className="p-4 bg-gray-50">
-                  <p className="text-sm text-gray-600 text-center">
-                    *This is an estimate. Final pricing may vary after consultation.
+            {/* Next Steps */}
+            <Card className="p-8">
+              <h3 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
+                What Happens Next?
+              </h3>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-primary-600 font-bold text-lg">1</span>
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Review & Analysis</h4>
+                  <p className="text-gray-600 text-sm">
+                    Our experts will analyze your business requirements and current setup
                   </p>
-                </Card>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-primary-600 font-bold text-lg">2</span>
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Personal Consultation</h4>
+                  <p className="text-gray-600 text-sm">
+                    We'll schedule a call to discuss your specific needs and answer questions
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-primary-600 font-bold text-lg">3</span>
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Custom Proposal</h4>
+                  <p className="text-gray-600 text-sm">
+                    Receive a detailed proposal with pricing and implementation timeline
+                  </p>
+                </div>
               </div>
-            )}
+            </Card>
 
             <div className="text-center">
               <Link to="/">
-                <Button variant="accent">
-                  Return to Home
+                <Button variant="outline" className="mr-4">
+                  Back to Home
+                </Button>
+              </Link>
+              <Link to="/contact">
+                <Button>
+                  Contact Us
                 </Button>
               </Link>
             </div>

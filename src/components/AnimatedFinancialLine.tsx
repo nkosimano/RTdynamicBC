@@ -8,6 +8,7 @@ gsap.registerPlugin(MotionPathPlugin, DrawSVGPlugin);
 
 export interface AnimationHandle {
   speedUp: () => void;
+  restart: () => void;
 }
 
 // Helper function to generate a financial path with straight lines and dips
@@ -43,7 +44,7 @@ const AnimatedFinancialLine = forwardRef<AnimationHandle>((props, ref) => {
   const pathRef = useRef<SVGPathElement>(null); // The single path for drawing and motion
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
 
-  // Expose the speedUp function to the parent component
+  // Expose animation control functions to the parent component
   useImperativeHandle(ref, () => ({
     speedUp() {
       if (!timelineRef.current) return;
@@ -60,6 +61,27 @@ const AnimatedFinancialLine = forwardRef<AnimationHandle>((props, ref) => {
             ease: 'power2.out',
           });
         }
+      });
+    },
+    restart() {
+      if (!timelineRef.current || !pathRef.current || !trackerRef.current) return;
+      
+      const path = pathRef.current;
+      const tracker = trackerRef.current;
+      
+      // Reset elements to initial state
+      gsap.set(path, { drawSVG: 0 });
+      gsap.set(tracker, { rotation: 0 });
+      
+      // Restart timeline from beginning
+      timelineRef.current.restart();
+      
+      // Reset the initial speed control
+      timelineRef.current.timeScale(2);
+      gsap.to(timelineRef.current, {
+        timeScale: 0.5,
+        duration: 2,
+        ease: 'power2.inOut',
       });
     }
   }));
@@ -94,8 +116,16 @@ const AnimatedFinancialLine = forwardRef<AnimationHandle>((props, ref) => {
       const dynamicPath = generateFinancialPath(startPoint, endPoint);
       path.setAttribute('d', dynamicPath);
 
-      // Create a single timeline to sync both animations
-      const tl = gsap.timeline();
+      // Create a single timeline to sync both animations with auto-restart
+      const tl = gsap.timeline({
+        repeat: -1, // Infinite repeat
+        repeatDelay: 2, // 2 second pause between repeats
+        onRepeat: () => {
+          // Reset the path drawing and tracker position for each repeat
+          gsap.set(path, { drawSVG: 0 });
+          gsap.set(tracker, { rotation: 0 });
+        }
+      });
       
       // Animation 1: Draw the SVG path itself
       tl.from(path, {
