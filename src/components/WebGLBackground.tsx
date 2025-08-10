@@ -328,6 +328,24 @@ const WebGLBackground = forwardRef<WebGLBackgroundHandle>((props, ref) => {
 
     particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
+    // Create circular texture for particles
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const context = canvas.getContext('2d')!;
+    
+    // Draw a circular gradient
+    const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+    gradient.addColorStop(0.2, 'rgba(255, 255, 255, 1)');
+    gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.8)');
+    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, 64, 64);
+    
+    const circleTexture = new THREE.CanvasTexture(canvas);
+
     const particleMaterial = new THREE.PointsMaterial({
       color: '#00A3A1',
       size: 0.04,
@@ -335,6 +353,8 @@ const WebGLBackground = forwardRef<WebGLBackgroundHandle>((props, ref) => {
       opacity: 0.3,
       blending: THREE.NormalBlending,
       sizeAttenuation: true,
+      map: circleTexture,
+      alphaTest: 0.001,
     });
 
     const particleSystem = new THREE.Points(particles, particleMaterial);
