@@ -1,0 +1,12 @@
+# SPA fallback for React Router
+/*    /index.html   200
+
+# API redirects (if needed for future backend integration)
+/api/*  https://your-backend-api.com/api/:splat  200
+
+# Security headers
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
